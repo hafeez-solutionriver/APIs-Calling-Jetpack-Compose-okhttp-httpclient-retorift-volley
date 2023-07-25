@@ -11,13 +11,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.apicalling.ui.theme.APiCallingTheme
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +66,7 @@ class MainActivity : ComponentActivity() {
 
 
         try {
-            val Thread = Thread(Runnable {
+            Thread(Runnable {
 
                 //Step1
                 val url_string = url
@@ -104,11 +108,54 @@ class MainActivity : ComponentActivity() {
 
 
     }
+    class OkHttpRequestDemo(private val client: OkHttpClient) {
 
-    fun okhttp(url: String) {
+        fun GET(url: String, callback: Callback): Call {
+            val request = Request.Builder()
+                .url(url)
+                .build()
+
+            val call = client.newCall(request)
+            call.enqueue(callback)
+            return call
+        }
 
 
     }
+
+    fun okhttp(url: String) {
+        val client = OkHttpClient()
+        val request = OkHttpRequestDemo(client)
+
+        request.GET(url, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle failure here
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseData = response.body?.string()
+                try {
+                    val json = JSONObject(responseData)
+                    Handler(Looper.getMainLooper()).post {
+
+                        Toast.makeText(applicationContext, "okhttp -> ${json.toString()}", Toast.LENGTH_SHORT)
+                            .show()
+
+                    }
+                } catch (e: JSONException) {
+                    // Handle JSON parsing error here
+                }
+            }
+        })
+    }
+
+
+
+
+
+
+
+
 
     fun volley(url: String) {
         Toast.makeText(applicationContext, "Volley:$url", Toast.LENGTH_SHORT).show()
