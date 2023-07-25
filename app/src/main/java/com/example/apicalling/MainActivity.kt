@@ -6,14 +6,22 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import com.android.volley.Request
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -50,7 +58,7 @@ class MainActivity : ComponentActivity() {
 
                 }
                 APiCallingButton(btnText = "Retrofit") {
-                    retrofit("https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd")
+                    Retrofit("https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd")
 
                 }
 
@@ -111,7 +119,7 @@ class MainActivity : ComponentActivity() {
     class OkHttpRequestDemo(private val client: OkHttpClient) {
 
         fun GET(url: String, callback: Callback): Call {
-            val request = Request.Builder()
+            val request = okhttp3.Request.Builder()
                 .url(url)
                 .build()
 
@@ -138,7 +146,11 @@ class MainActivity : ComponentActivity() {
                     val json = JSONObject(responseData)
                     Handler(Looper.getMainLooper()).post {
 
-                        Toast.makeText(applicationContext, "okhttp -> ${json.toString()}", Toast.LENGTH_SHORT)
+                        Toast.makeText(
+                            applicationContext,
+                            "okhttp -> ${json.toString()}",
+                            Toast.LENGTH_SHORT
+                        )
                             .show()
 
                     }
@@ -150,18 +162,30 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
-
-
-
-
-
-
     fun volley(url: String) {
-        Toast.makeText(applicationContext, "Volley:$url", Toast.LENGTH_SHORT).show()
-    }
 
-    fun retrofit(url: String) {
+        val queue = Volley.newRequestQueue(this@MainActivity)
+            val request = JsonObjectRequest(Request.Method.GET, url, null,
+                { response ->
+                    Handler(Looper.getMainLooper()).post {
+                        val context = this@MainActivity
+                        Toast.makeText(context, "Volley -> $response", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                { error ->
+                    // Handle error here
+                }
+            )
+
+        queue.add(request)
+
+
+            // Add the request to the RequestQueue.
+        
+        }
+
+
+    fun Retrofit(url: String) {
         Toast.makeText(applicationContext, "Retrofit:$url", Toast.LENGTH_SHORT).show()
     }
 
